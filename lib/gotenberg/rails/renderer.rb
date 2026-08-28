@@ -5,13 +5,15 @@ module Gotenberg
     module Renderer
       def self.register
         ActionController::Renderers.add :gotenberg_pdf do |options, render_options|
-          pdf_options = options || {}
+          pdf_options = (options || {}).dup
           filename = render_options[:filename] || pdf_options.delete(:filename) || "#{controller_name}.pdf"
           disposition = render_options[:disposition] || pdf_options.delete(:disposition) || "attachment"
           display_url = render_options[:display_url] || pdf_options.delete(:display_url) || request.original_url
+          header_html = pdf_options.delete(:header_html)
+          footer_html = pdf_options.delete(:footer_html)
 
           html = render_to_string(render_options.except(:display_url, :filename, :disposition).merge(formats: [:html]))
-          pdf = Gotenberg::Rails.render_pdf(html:, display_url:, pdf_options:, filename:)
+          pdf = Gotenberg::Rails.render_pdf(html:, display_url:, header_html:, footer_html:, pdf_options:, filename:)
 
           send_data pdf,
                     filename: filename,

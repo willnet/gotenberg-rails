@@ -32,11 +32,11 @@ module Gotenberg
         )
       end
 
-      def render_pdf(html: nil, url: nil, display_url: nil, pdf_options: {}, **options)
+      def render_pdf(html: nil, url: nil, display_url: nil, header_html: nil, footer_html: nil, pdf_options: {}, **options)
         merged_options = configuration.pdf_options.merge(pdf_options || {})
         html = HtmlPreprocessor.new(html, display_url:).call if html
 
-        client.render_pdf(html:, url:, pdf_options: merged_options, **options)
+        client.render_pdf(html:, url:, header_html:, footer_html:, pdf_options: merged_options, **options)
       end
 
       def reset_configuration!

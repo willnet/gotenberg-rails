@@ -20,13 +20,13 @@ module Gotenberg
         @headers = headers
       end
 
-      def render_pdf(html: nil, url: nil, pdf_options: {}, filename: nil, trace: nil)
+      def render_pdf(html: nil, url: nil, header_html: nil, footer_html: nil, pdf_options: {}, filename: nil, trace: nil)
         if html && url
           raise ArgumentError, "Provide either :html or :url, not both"
         elsif html
-          post(HTML_PATH, html_form(html, pdf_options), filename:, trace:)
+          post(HTML_PATH, html_form(html, header_html, footer_html, pdf_options), filename:, trace:)
         elsif url
-          post(URL_PATH, url_form(url, pdf_options), filename:, trace:)
+          post(URL_PATH, url_form(url, header_html, footer_html, pdf_options), filename:, trace:)
         else
           raise ArgumentError, "Provide :html or :url"
         end
@@ -34,18 +34,31 @@ module Gotenberg
 
       private
 
-      def html_form(html, pdf_options)
+      def html_form(html, header_html, footer_html, pdf_options)
         [
-          ["files", StringIO.new(html.to_s), { filename: "index.html", content_type: "text/html" }],
+          html_file(html, "index.html"),
+          *header_footer_files(header_html, footer_html),
           *option_fields(pdf_options)
         ]
       end
 
-      def url_form(url, pdf_options)
+      def url_form(url, header_html, footer_html, pdf_options)
         [
           ["url", url.to_s],
+          *header_footer_files(header_html, footer_html),
           *option_fields(pdf_options)
         ]
+      end
+
+      def header_footer_files(header_html, footer_html)
+        {
+          "header.html" => header_html,
+          "footer.html" => footer_html
+        }.compact.map { |filename, content| html_file(content, filename) }
+      end
+
+      def html_file(content, filename)
+        ["files", StringIO.new(content.to_s), { filename:, content_type: "text/html" }]
       end
 
       def option_fields(options)

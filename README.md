@@ -59,6 +59,36 @@ Gotenberg::Rails.render_pdf(html: html, display_url: "https://example.com/invoic
 Gotenberg::Rails.render_pdf(url: "https://example.com/invoice")
 ```
 
+Add a header or footer to every page by passing complete HTML documents:
+
+```ruby
+Gotenberg::Rails.render_pdf(
+  html: html,
+  header_html: "<html><body>Invoice</body></html>",
+  footer_html: '<html><body>Page <span class="pageNumber"></span> of <span class="totalPages"></span></body></html>',
+  pdf_options: {
+    margin_top: "1in",
+    margin_bottom: "1in"
+  }
+)
+```
+
+From a controller, Rails templates can be rendered separately for the header and footer:
+
+```ruby
+header_html = render_to_string(template: "invoices/header", layout: false)
+footer_html = render_to_string(template: "invoices/footer", layout: false)
+
+render gotenberg_pdf: {
+  header_html: header_html,
+  footer_html: footer_html,
+  margin_top: "1in",
+  margin_bottom: "1in"
+}, template: "invoices/show", layout: "pdf"
+```
+
+Header and footer templates must each be complete HTML documents. They are rendered separately from the main page, so JavaScript and external stylesheets or images are unavailable. Embed images as Base64 data URLs and leave enough top and bottom margin to avoid clipping.
+
 When rendering HTML, `display_url` is used to rewrite relative image, link, JavaScript, stylesheet, and CSS `url(...)` references to absolute URLs before sending the HTML to Gotenberg. Controller rendering uses `request.original_url` automatically.
 
 Options are sent to Gotenberg as Chromium form fields. Ruby-style snake case keys are converted to Gotenberg camel case keys:
