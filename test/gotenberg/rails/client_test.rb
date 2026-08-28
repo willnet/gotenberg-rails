@@ -14,6 +14,8 @@ class GotenbergRailsClientTest < Minitest::Test
     request = capture_request do
       new_client.render_pdf(
         html: "<h1>Hello</h1>",
+        header_html: "<html><body>Header</body></html>",
+        footer_html: "<html><body>Footer</body></html>",
         pdf_options: { print_background: true, fail_on_http_status_codes: [499, 599] },
         filename: "hello",
         trace: "trace-1"
@@ -28,20 +30,39 @@ class GotenbergRailsClientTest < Minitest::Test
     assert_equal "files", fields[0][0]
     assert_equal "<h1>Hello</h1>", fields[0][1].read
     assert_equal({ filename: "index.html", content_type: "text/html" }, fields[0][2])
+    assert_equal "<html><body>Header</body></html>", fields[1][1].read
+    assert_equal({ filename: "header.html", content_type: "text/html" }, fields[1][2])
+    assert_equal "<html><body>Footer</body></html>", fields[2][1].read
+    assert_equal({ filename: "footer.html", content_type: "text/html" }, fields[2][2])
     assert_includes fields, ["printBackground", "true"]
     assert_includes fields, ["failOnHttpStatusCodes", "[499,599]"]
   end
 
   def test_builds_url_request
     request = capture_request do
-      new_client.render_pdf(url: "https://example.com", pdf_options: { wait_delay: "2s" })
+      new_client.render_pdf(
+        url: "https://example.com",
+        header_html: "<html><body>Header</body></html>",
+        pdf_options: { wait_delay: "2s" }
+      )
     end
 
     assert_equal "/forms/chromium/convert/url", request.uri.path
 
     fields = request.instance_variable_get(:@body_data)
     assert_includes fields, ["url", "https://example.com"]
+    assert_equal "<html><body>Header</body></html>", fields[1][1].read
+    assert_equal({ filename: "header.html", content_type: "text/html" }, fields[1][2])
     assert_includes fields, ["waitDelay", "2s"]
+  end
+
+  def test_omits_unspecified_header_and_footer_files
+    request = capture_request do
+      new_client.render_pdf(html: "<h1>Hello</h1>")
+    end
+
+    fields = request.instance_variable_get(:@body_data)
+    assert_equal ["index.html"], fields.filter_map { |field| field[2]&.fetch(:filename) }
   end
 
   private

@@ -18,12 +18,16 @@ class GotenbergRailsTest < Minitest::Test
 
     assert_equal "%PDF", Gotenberg::Rails.render_pdf(
       html: "<h1>Hello</h1>",
+      header_html: "<html><body>Header</body></html>",
+      footer_html: "<html><body>Footer</body></html>",
       pdf_options: { print_background: false }
     )
     assert_equal(
       {
         html: "<h1>Hello</h1>",
         url: nil,
+        header_html: "<html><body>Header</body></html>",
+        footer_html: "<html><body>Footer</body></html>",
         pdf_options: { print_background: false, margin_top: "1" }
       },
       fake_client.calls.first
