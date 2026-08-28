@@ -2,6 +2,8 @@
 
 Render Rails HTML as PDFs with [Gotenberg](https://gotenberg.dev/).
 
+To quickly try the gem locally, see the [Gotenberg Rails example application](https://github.com/willnet/gotenberg-rails-example).
+
 ## Installation
 
 Add the gem to your Gemfile:
